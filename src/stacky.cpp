@@ -208,6 +208,7 @@ struct Bmp {
     }
 
     void close() {
+        DeleteObject(hBmp);
         bits.free();
         hBmp = 0;
         memset(&file_header, 0, sizeof(BITMAPFILEHEADER));
