@@ -208,7 +208,7 @@ struct Bmp {
     }
 
     void close() {
-        DeleteObject(hBmp);
+        ::DeleteObject(hBmp);
         bits.free();
         hBmp = 0;
         memset(&file_header, 0, sizeof(BITMAPFILEHEADER));
@@ -254,12 +254,6 @@ struct Bmp {
         bmih.biCompression = BI_RGB;
         return bmih;
     }
-    static bool create_bitmap(int width, int height, void** bits, HBITMAP* phBmp) {
-	    BITMAPINFO bmi = { 0 };
-        bmi.bmiHeader = create_info_header(width, height);
-	    *phBmp = ::CreateDIBSection(GetDC(0), &bmi, DIB_RGB_COLORS, bits, 0, 0);
-        return *phBmp != 0;
-    }
     static bool convert_file_icon(const HICON icon, Bmp& bmp) {
         static IWICImagingFactory* img_factory = 0;
         if (!img_factory) {
@@ -304,6 +298,12 @@ private:
         memcpy(buf, bytes, byte_count);
         return bits.load(bytes, byte_count);
     }
+	static bool create_bitmap(int width, int height, void** bits, HBITMAP* phBmp) {
+		BITMAPINFO bmi = { 0 };
+		bmi.bmiHeader = create_info_header(width, height);
+		*phBmp = ::CreateDIBSection(GetDC(0), &bmi, DIB_RGB_COLORS, bits, 0, 0);
+		return *phBmp != 0;
+	}
 };
 
 struct Cache {
