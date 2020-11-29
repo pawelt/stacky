@@ -97,7 +97,7 @@ struct Util {
         }
         return 0;
     }
-    static void msgt(const String& title, const String& format, ...) {
+    static void msgt(const String& title, const String format, ...) {
 	    static Char msgBuf[4096] = { 0 };
 	    va_list arglist;
 	    va_start(arglist, format);
@@ -105,7 +105,7 @@ struct Util {
 	    va_end(arglist);
         ::MessageBox(0, msgBuf, title.c_str(), MB_OK | MB_ICONINFORMATION);
     }
-    static void msg(const String& format, ...) {
+    static void msg(const String format, ...) {
 	    static Char msgBuf[4096] = { 0 };
 	    va_list arglist;
 	    va_start(arglist, format);
