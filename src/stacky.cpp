@@ -478,7 +478,10 @@ private:
         MENUITEMINFO mii = { sizeof(MENUITEMINFO) };
         mii.fMask = MIIM_BITMAP;
         mii.hbmpItem = item.bmp.hBmp;
-        ::AppendMenu(hMenu, MF_STRING, msg + idx, Util::rtrim(item.name, L".lnk").c_str());
+
+        String niceName = Util::rtrim(Util::rtrim(item.name, L".lnk"), L".url");
+
+        ::AppendMenu(hMenu, MF_STRING, msg + idx, niceName.c_str());
         return SUCCEEDED(::SetMenuItemInfo(hMenu, idx, TRUE, &mii));
     }
     void show(HMENU menu) {
