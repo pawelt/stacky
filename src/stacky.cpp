@@ -27,15 +27,15 @@ typedef std::vector<String>     StringList;
 
 const String CACHE_FILE_NAME    = L"!stacky.cache";
 const String STACKY_EXEC_NAME   = L"stacky.exe";
-const Char*	 STACKY_WINDOW_NAME = L"stacky";
-const Char*	 DIR_SEP            = L"\\";
+const Char*  STACKY_WINDOW_NAME = L"stacky";
+const Char*  DIR_SEP            = L"\\";
 
 enum {
-	WM_BASE                     = WM_USER + 100,
-	WM_OPEN_TARGET_FOLDER       = WM_BASE + 1,
-	WM_MENU_ITEM                = WM_BASE + 2,
+    WM_BASE                     = WM_USER + 100,
+    WM_OPEN_TARGET_FOLDER       = WM_BASE + 1,
+    WM_MENU_ITEM                = WM_BASE + 2,
 
-	APP_EXIT_DELAY              = 3 * 1000,
+    APP_EXIT_DELAY              = 3 * 1000,
 
     ERR_PATH_MISSING            = 401,
     ERR_PATH_INVALID            = 402,
@@ -49,38 +49,38 @@ enum {
 struct Util {
 
     static String rtrim(const String& target, const String& trim) {
-	    size_t cutoff_pos = target.size() - trim.size();
-	    return target.rfind(trim) == cutoff_pos ? target.substr(0, cutoff_pos) : target;
+        size_t cutoff_pos = target.size() - trim.size();
+        return target.rfind(trim) == cutoff_pos ? target.substr(0, cutoff_pos) : target;
     }
     static String ltrim(const String& target, const String& trim) {
-	    size_t cutoff_pos = trim.size();
+        size_t cutoff_pos = trim.size();
         return target.find(trim) != String::npos ? target.substr(cutoff_pos) : target;
     }
     static String trim(const String& target, const String& trim) {
         return rtrim(ltrim(target, trim), trim);
     }
     static String quote(const String& target) {
-	    return L"\"" + target + L"\"";
+        return L"\"" + target + L"\"";
     }
     static void kill_other_stackies() {
         PROCESSENTRY32 entry = { 0 };
-	    entry.dwSize = sizeof(PROCESSENTRY32);
+        entry.dwSize = sizeof(PROCESSENTRY32);
         BOOL found = false;
-	    HANDLE snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPALL, 0);
-	    do {
-		    found = ::Process32Next(snapshot, &entry);
-		    if (entry.th32ProcessID != ::GetCurrentProcessId() && entry.szExeFile == STACKY_EXEC_NAME) {
-			    HANDLE hOtherStacky = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID); 
-			    if (hOtherStacky) {
-				    ::TerminateProcess(hOtherStacky, 0);
-				    ::CloseHandle(hOtherStacky);
-			    }
-			    else {
+        HANDLE snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPALL, 0);
+        do {
+            found = ::Process32Next(snapshot, &entry);
+            if (entry.th32ProcessID != ::GetCurrentProcessId() && entry.szExeFile == STACKY_EXEC_NAME) {
+                HANDLE hOtherStacky = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID); 
+                if (hOtherStacky) {
+                    ::TerminateProcess(hOtherStacky, 0);
+                    ::CloseHandle(hOtherStacky);
+                }
+                else {
                     Util::msg(L"Failed to open another stacky.exe process. Kill stacky.exe manually.");
-			    }
-		    }
-	    } while(found);
-	    ::CloseHandle(snapshot);
+                }
+            }
+        } while(found);
+        ::CloseHandle(snapshot);
     }
     static Time get_modified(const String& file_path) {
         struct _stat buf;
@@ -98,19 +98,19 @@ struct Util {
         return 0;
     }
     static void msgt(const String& title, const String format, ...) {
-	    static Char msgBuf[4096] = { 0 };
-	    va_list arglist;
-	    va_start(arglist, format);
+        static Char msgBuf[4096] = { 0 };
+        va_list arglist;
+        va_start(arglist, format);
         vswprintf(msgBuf, format.c_str(), arglist);
-	    va_end(arglist);
+        va_end(arglist);
         ::MessageBox(0, msgBuf, title.c_str(), MB_OK | MB_ICONINFORMATION);
     }
     static void msg(const String format, ...) {
-	    static Char msgBuf[4096] = { 0 };
-	    va_list arglist;
-	    va_start(arglist, format);
+        static Char msgBuf[4096] = { 0 };
+        va_list arglist;
+        va_start(arglist, format);
         vswprintf(msgBuf, format.c_str(), arglist);
-	    va_end(arglist);
+        va_end(arglist);
         ::MessageBox(0, msgBuf, L"Stacky", MB_OK | MB_ICONINFORMATION);
     }
 };
@@ -254,11 +254,11 @@ struct Bmp {
         return bmfh;
     }
     static BITMAPINFOHEADER create_info_header(int width, int height) {
-	    BITMAPINFOHEADER bmih = { 0 };
+        BITMAPINFOHEADER bmih = { 0 };
         bmih.biSize = sizeof(BITMAPINFOHEADER);
         bmih.biWidth = width;
         bmih.biHeight = height;
-        bmih.biPlanes = 1;	
+        bmih.biPlanes = 1;    
         bmih.biBitCount = 32;
         bmih.biCompression = BI_RGB;
         return bmih;
@@ -274,28 +274,28 @@ struct Bmp {
         IWICBitmap* pBitmap = 0;
         IWICFormatConverter* pConverter = 0;
         UINT cx = 0, cy = 0;
-	    if (SUCCEEDED(img_factory->CreateBitmapFromHICON(icon, &pBitmap))) {
-		    if (SUCCEEDED(img_factory->CreateFormatConverter(&pConverter))) {
-			    if (SUCCEEDED(pConverter->Initialize(pBitmap, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, 0, 0.0f, WICBitmapPaletteTypeCustom))) {
-				    if (SUCCEEDED(pConverter->GetSize(&cx, &cy))) {
-						const UINT stride = cx * sizeof(DWORD);
-						const UINT buf_size = cy * stride;
+        if (SUCCEEDED(img_factory->CreateBitmapFromHICON(icon, &pBitmap))) {
+            if (SUCCEEDED(img_factory->CreateFormatConverter(&pConverter))) {
+                if (SUCCEEDED(pConverter->Initialize(pBitmap, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, 0, 0.0f, WICBitmapPaletteTypeCustom))) {
+                    if (SUCCEEDED(pConverter->GetSize(&cx, &cy))) {
+                        const UINT stride = cx * sizeof(DWORD);
+                        const UINT buf_size = cy * stride;
                         Byte* buf = new Byte[buf_size];
-						pConverter->CopyPixels(0, stride, buf_size, buf);
+                        pConverter->CopyPixels(0, stride, buf_size, buf);
                         bmp.load_bits_only(buf, buf_size, cx, -(int)cy);
                         delete [] buf;
                     }
-			    }
-			    pConverter->Release();
-		    }
-		    pBitmap->Release();
-	    }
+                }
+                pConverter->Release();
+            }
+            pBitmap->Release();
+        }
         return true;
     }
     static HICON extract_file_icon(const String& file_path) {
-	    SHFILEINFOW file_info = { 0 };
-	    HIMAGELIST hfi = (HIMAGELIST)::SHGetFileInfo(file_path.c_str(), 0, &file_info, sizeof(SHFILEINFOW), SHGFI_SYSICONINDEX);
-	    return ::ImageList_GetIcon(hfi, file_info.iIcon, ILD_NORMAL);
+        SHFILEINFOW file_info = { 0 };
+        HIMAGELIST hfi = (HIMAGELIST)::SHGetFileInfo(file_path.c_str(), 0, &file_info, sizeof(SHFILEINFOW), SHGFI_SYSICONINDEX);
+        return ::ImageList_GetIcon(hfi, file_info.iIcon, ILD_NORMAL);
     }
 
 private:
@@ -307,12 +307,12 @@ private:
         memcpy(buf, bytes, byte_count);
         return bits.load(bytes, byte_count);
     }
-	static bool create_bitmap(int width, int height, void** bits, HBITMAP* phBmp) {
-		BITMAPINFO bmi = { 0 };
-		bmi.bmiHeader = create_info_header(width, height);
-		*phBmp = ::CreateDIBSection(GetDC(0), &bmi, DIB_RGB_COLORS, bits, 0, 0);
-		return *phBmp != 0;
-	}
+    static bool create_bitmap(int width, int height, void** bits, HBITMAP* phBmp) {
+        BITMAPINFO bmi = { 0 };
+        bmi.bmiHeader = create_info_header(width, height);
+        *phBmp = ::CreateDIBSection(GetDC(0), &bmi, DIB_RGB_COLORS, bits, 0, 0);
+        return *phBmp != 0;
+    }
 };
 
 struct Cache {
@@ -356,20 +356,20 @@ struct Cache {
         return base_dir + file; 
     }
     bool scan() {
-	    WIN32_FIND_DATA ffd = { 0 };
-	    HANDLE hfind = FindFirstFile(path(L"*").c_str(), &ffd);
-	    if (hfind == INVALID_HANDLE_VALUE) {
-		    return false;
+        WIN32_FIND_DATA ffd = { 0 };
+        HANDLE hfind = FindFirstFile(path(L"*").c_str(), &ffd);
+        if (hfind == INVALID_HANDLE_VALUE) {
+            return false;
         }
-	    do {
-		    String filename = ffd.cFileName;
-		    if (filename == L"." || filename == L".." || ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-			    continue;
+        do {
+            String filename = ffd.cFileName;
+            if (filename == L"." || filename == L".." || ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
+                continue;
             scanned_items.push_back(filename);
             update_max_modified(filename);
-	    }
-	    while (FindNextFile(hfind, &ffd) != 0);
-	    return true;
+        }
+        while (FindNextFile(hfind, &ffd) != 0);
+        return true;
     }
     bool load() {
         Buffer buffer;
@@ -450,16 +450,16 @@ struct App {
 
     bool init() {
         // Create window
-	    Util::kill_other_stackies();
-	    WNDCLASS wc = { 0 };
-	    wc.style         = CS_HREDRAW | CS_VREDRAW;
-	    wc.lpfnWndProc   = window_proc;
-	    wc.hInstance     = ::GetModuleHandle(0);
-	    wc.lpszClassName = STACKY_WINDOW_NAME;
-	    if (!::RegisterClass(&wc)) {
+        Util::kill_other_stackies();
+        WNDCLASS wc = { 0 };
+        wc.style         = CS_HREDRAW | CS_VREDRAW;
+        wc.lpfnWndProc   = window_proc;
+        wc.hInstance     = ::GetModuleHandle(0);
+        wc.lpszClassName = STACKY_WINDOW_NAME;
+        if (!::RegisterClass(&wc)) {
             return false;
         }
-	    window = ::CreateWindow(STACKY_WINDOW_NAME, STACKY_WINDOW_NAME, WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, 0, 0, ::GetModuleHandle(0), 0);
+        window = ::CreateWindow(STACKY_WINDOW_NAME, STACKY_WINDOW_NAME, WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, 0, 0, ::GetModuleHandle(0), 0);
         ::SetWindowLongPtr(window, GWLP_USERDATA, (LONG_PTR)cache);
 
         // Create window
@@ -479,10 +479,10 @@ struct App {
         return true;
     }
     void run() {
-	    for (MSG msg; ::GetMessage(&msg, 0, 0, 0); ) {
-		    ::TranslateMessage(&msg);
-		    ::DispatchMessage(&msg);
-	    }
+        for (MSG msg; ::GetMessage(&msg, 0, 0, 0); ) {
+            ::TranslateMessage(&msg);
+            ::DispatchMessage(&msg);
+        }
     }
 
 private:
@@ -515,27 +515,27 @@ private:
         if (pos_y < rWorkArea.top)          pos_y = rWorkArea.top - 1;
         else if (pos_y > rWorkArea.bottom)  pos_y = rWorkArea.bottom - 1;
 
-	    ::SetForegroundWindow(window);
-	    ::TrackPopupMenuEx(menu, ::GetSystemMetrics(SM_MENUDROPALIGNMENT) | TPM_LEFTBUTTON, pos_x, pos_y, window, 0);
+        ::SetForegroundWindow(window);
+        ::TrackPopupMenuEx(menu, ::GetSystemMetrics(SM_MENUDROPALIGNMENT) | TPM_LEFTBUTTON, pos_x, pos_y, window, 0);
     }
     static LRESULT CALLBACK window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	    switch (msg) {
-		    case WM_COMMAND: {
+        switch (msg) {
+            case WM_COMMAND: {
                 Cache* cache = (Cache*)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
                 String cmd = cache->path(wparam == WM_OPEN_TARGET_FOLDER ? L"" : cache->items[wparam - WM_MENU_ITEM - cache->fixed_items].name);
                 ::ShellExecute(0, 0, cmd.c_str(), 0, 0, SW_NORMAL);
             }
-		    case WM_EXITMENULOOP:
+            case WM_EXITMENULOOP:
                 // WM_EXITMENULOOP is sent before WM_COMMAND, so the app termination has to be delayed.
                 // This also allows to wait for the possible UAC prompt.
                 ::SetTimer(hwnd, 0, APP_EXIT_DELAY, 0);
-			    break;
-            case WM_TIMER:
-		        ::PostQuitMessage(0);
-		        ::DestroyWindow(hwnd);
                 break;
-	    }
-	    return ::DefWindowProc(hwnd, msg, wparam, lparam);
+            case WM_TIMER:
+                ::PostQuitMessage(0);
+                ::DestroyWindow(hwnd);
+                break;
+        }
+        return ::DefWindowProc(hwnd, msg, wparam, lparam);
     }
 };
 
@@ -556,6 +556,6 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, LPTSTR cmd_line, int) {
     else if (!cache.scan())                         Util::msgt(err_title + L"Invalid path", err_msg);
     else if (!cache.load())                         Util::msgt(err_title + L"Failed to load stack cache", err_msg);
     else if (!app.init())                           Util::msgt(err_title + L"App init failed", err_msg);
-	else                                            app.run();
-	return 0;
+    else                                            app.run();
+    return 0;
 }
