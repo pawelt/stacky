@@ -205,6 +205,9 @@ struct Bmp {
     Bmp() : hBmp(0) { 
         memset(&file_header, 0, sizeof(BITMAPFILEHEADER));
         memset(&info_header, 0, sizeof(BITMAPINFOHEADER));
+
+        file_header = create_file_header(0);
+        info_header = create_info_header(0, 0);
     }
 
     void close() {
@@ -230,19 +233,25 @@ struct Bmp {
         return fill_bitmap(bytes + pos, bits_size());
     }
     bool load_bits_only(Byte* bytes, int bits_size, int width, int height) {
+
         close();
-        memset(&file_header, 0, sizeof(BITMAPFILEHEADER));
-        file_header.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + bits_size;
-        file_header.bfType = 0x4d42;
-        file_header.bfOffBits = 0x36;
+        file_header = create_file_header(bits_size);
         info_header = create_info_header(width, height);
         return fill_bitmap(bytes, bits_size);
     }
     bool serialize(Buffer& buffer) {
+
         buffer.load(&file_header, sizeof(BITMAPFILEHEADER));
         buffer.load(&info_header, sizeof(BITMAPINFOHEADER));
         buffer.load(bits.data, bits.size);
         return true;
+    }
+    static BITMAPFILEHEADER create_file_header(int bits_size) {
+        BITMAPFILEHEADER bmfh = { 0 };
+        bmfh.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + bits_size;
+        bmfh.bfType = 0x4d42;
+        bmfh.bfOffBits = 0x36;
+        return bmfh;
     }
     static BITMAPINFOHEADER create_info_header(int width, int height) {
 	    BITMAPINFOHEADER bmih = { 0 };
@@ -275,7 +284,7 @@ struct Bmp {
 						pConverter->CopyPixels(0, stride, buf_size, buf);
                         bmp.load_bits_only(buf, buf_size, cx, -(int)cy);
                         delete [] buf;
-				    }
+                    }
 			    }
 			    pConverter->Release();
 		    }
@@ -313,6 +322,7 @@ struct Cache {
         Bmp     bmp;
         
         bool create(const String& file_name, const String& file_path) {
+
             if (!Bmp::convert_file_icon(Bmp::extract_file_icon(file_path), bmp)) {
                 return false;
             }
@@ -321,11 +331,14 @@ struct Cache {
         }
         void serialize(Buffer& buffer) {
             buffer.load(name, true);
+
             bmp.serialize(buffer);
         }
         void unserialize(Buffer& buffer, size_t& pos) {
-            name = (Char*)(buffer.data + pos);              pos += (name.size() + 1) * sizeof(Char);
-            bmp.load_bits_and_headers(buffer.data + pos);   pos += bmp.total_size();
+            name = (Char*)(buffer.data + pos);
+            pos += (name.size() + 1) * sizeof(Char);
+            bmp.load_bits_and_headers(buffer.data + pos);
+            pos += bmp.total_size();
         }
     };
 
@@ -363,11 +376,15 @@ struct Cache {
         items.clear();
 
         buffer.load(cache_path);
+
+
         for (size_t pos = 0; pos < buffer.size; ) {
             Item item;
             item.unserialize(buffer, pos);
             items.push_back(item);
         }
+
+
         last_modified = Util::get_modified(cache_path);
 
         if (is_outdated()) {
@@ -413,6 +430,7 @@ private:
         scanned_last_modified = scanned_last_modified < ft ? ft : scanned_last_modified;
     }
     bool is_outdated() {
+
         if (scanned_last_modified > last_modified || items.size() < 1 || scanned_items.size() + 1 != items.size()) {
             return true;
         }
@@ -476,10 +494,11 @@ private:
     }
     bool add_item(HMENU hMenu, int idx, int msg, const Cache::Item& item) {
         MENUITEMINFO mii = { sizeof(MENUITEMINFO) };
-        mii.fMask = MIIM_BITMAP;
+        mii.fMask |= MIIM_BITMAP;
         mii.hbmpItem = item.bmp.hBmp;
 
         String niceName = Util::rtrim(Util::rtrim(item.name, L".lnk"), L".url");
+
 
         ::AppendMenu(hMenu, MF_STRING, msg + idx, niceName.c_str());
         return SUCCEEDED(::SetMenuItemInfo(hMenu, idx, TRUE, &mii));
