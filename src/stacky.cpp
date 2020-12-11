@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include "resource.h" // for version info
 
@@ -30,10 +31,14 @@ const String STACKY_EXEC_NAME   = L"stacky.exe";
 const Char*  STACKY_WINDOW_NAME = L"stacky";
 const Char*  DIR_SEP            = L"\\";
 
+const char* LOG_FILE_NAME           = "stacky.log";
+const char* ERR_FILE_NAME           = "stacky.err";
+
 enum {
     WM_BASE                     = WM_USER + 100,
     WM_OPEN_TARGET_FOLDER       = WM_BASE + 1,
     WM_MENU_ITEM                = WM_BASE + 2,
+    WM_OPEN_ALL                 = WM_BASE + 3,
 
     APP_EXIT_DELAY              = 3 * 1000,
 
@@ -464,10 +469,12 @@ struct App {
 
         // Create window
         HMENU menu = ::CreatePopupMenu();
-        cache->fixed_items = 1;
+        cache->fixed_items = 2;
         add_item(menu, 0, WM_OPEN_TARGET_FOLDER, cache->items[0]);
+        add_item(menu, 1, WM_OPEN_ALL, L"Open all items");
+
         if (cache->was_rebuilt) {
-            cache->fixed_items = 2;
+            cache->fixed_items += 1;
             add_separator(menu, L"Stack cache rebuilt!");
         }
         add_separator(menu, L"");
@@ -492,13 +499,22 @@ private:
     bool add_separator(HMENU hMenu, const String& text) {
         return AppendMenu(hMenu, text.empty() ? MF_SEPARATOR : MF_GRAYED, 0, text.c_str()) == TRUE;
     }
+    bool add_item(HMENU hMenu, int idx, int msg, const String& text) {
+        MENUITEMINFO mii = { sizeof(MENUITEMINFO) };
+        mii.fMask |= MIIM_BITMAP;
+        // mii.hbmpItem = item.bmp.hBmp;
+
+        ::AppendMenu(hMenu, MF_STRING, msg, text.c_str());
+        return SUCCEEDED(::SetMenuItemInfo(hMenu, idx, TRUE, &mii));
+    }
     bool add_item(HMENU hMenu, int idx, int msg, const Cache::Item& item) {
+        // msg is type of menu link
+
         MENUITEMINFO mii = { sizeof(MENUITEMINFO) };
         mii.fMask |= MIIM_BITMAP;
         mii.hbmpItem = item.bmp.hBmp;
 
         String niceName = Util::rtrim(Util::rtrim(item.name, L".lnk"), L".url");
-
 
         ::AppendMenu(hMenu, MF_STRING, msg + idx, niceName.c_str());
         return SUCCEEDED(::SetMenuItemInfo(hMenu, idx, TRUE, &mii));
@@ -516,14 +532,52 @@ private:
         else if (pos_y > rWorkArea.bottom)  pos_y = rWorkArea.bottom - 1;
 
         ::SetForegroundWindow(window);
-        ::TrackPopupMenuEx(menu, ::GetSystemMetrics(SM_MENUDROPALIGNMENT) | TPM_LEFTBUTTON, pos_x, pos_y, window, 0);
+        ::TrackPopupMenuEx(menu, ::GetSystemMetrics(SM_MENUDROPALIGNMENT) | TPM_LEFTBUTTON | TPM_RIGHTBUTTON, pos_x, pos_y, window, 0);
     }
     static LRESULT CALLBACK window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+
         switch (msg) {
             case WM_COMMAND: {
+
                 Cache* cache = (Cache*)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
-                String cmd = cache->path(wparam == WM_OPEN_TARGET_FOLDER ? L"" : cache->items[wparam - WM_MENU_ITEM - cache->fixed_items].name);
-                ::ShellExecute(0, 0, cmd.c_str(), 0, 0, SW_NORMAL);
+                String cmd;
+                switch (wparam) {
+                    case WM_OPEN_TARGET_FOLDER: {
+                        cmd = cache->path(L"");
+                        ::ShellExecute(0, 0, cmd.c_str(), 0, 0, SW_NORMAL);
+                    }
+                    break;
+                    case WM_OPEN_ALL: {
+                        for (size_t i = 1; i < cache->items.size(); i++) {
+                            cmd = cache->path(cache->items[i].name);
+                            ::ShellExecute(0, 0, cmd.c_str(), 0, 0, SW_NORMAL);
+                        }
+                    }
+                    break;
+                    default: {
+                        cmd = cache->path(
+                            cache->items[wparam - WM_MENU_ITEM - cache->fixed_items].name
+                        );
+                        ::ShellExecute(0, 0, cmd.c_str(), 0, 0, SW_NORMAL);
+                    }
+                    break;
+                }
+            }
+            break;
+            case WM_NOTIFY: {
+                // FIXME: This never happens so we cannot respond to right clicks.
+
+                switch (((LPNMHDR)lparam)->code)
+                {
+                    case NM_CLICK:
+                    {
+                    }
+                    break;
+                    case NM_RCLICK:
+                    {
+                    }
+                    break;
+                }
             }
             case WM_EXITMENULOOP:
                 // WM_EXITMENULOOP is sent before WM_COMMAND, so the app termination has to be delayed.
@@ -543,6 +597,9 @@ private:
  * App entry point
  **************************************************************************************************/
 int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, LPTSTR cmd_line, int) {
+    freopen(LOG_FILE_NAME, "w", stdout);
+    freopen(ERR_FILE_NAME, "w", stderr);
+
     String  stack_path, opts;
     int     cmd_line_error = Util::parse_cmd_line(cmd_line, stack_path, opts);
     String  err_title = String(L"Stacky v") + STACKY_VERSION_STR + L": ";
