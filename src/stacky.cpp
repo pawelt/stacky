@@ -33,6 +33,8 @@ const Char*  DIR_SEP            = L"\\";
 
 const char* LOG_FILE_NAME           = "stacky.log";
 const char* ERR_FILE_NAME           = "stacky.err";
+RECT rWorkArea;
+POINT pos;
 
 enum {
     WM_BASE                     = WM_USER + 100,
@@ -519,11 +521,32 @@ private:
         ::AppendMenu(hMenu, MF_STRING, msg + idx, niceName.c_str());
         return SUCCEEDED(::SetMenuItemInfo(hMenu, idx, TRUE, &mii));
     }
+    static bool point_in_rect(POINT p, RECT r){
+        return (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom);
+    };
+    static BOOL CALLBACK check_displays(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+    {
+        MONITORINFOEX iMonitor;
+        iMonitor.cbSize = sizeof(MONITORINFOEX);
+        GetMonitorInfo(hMonitor, &iMonitor);
+
+        if (iMonitor.dwFlags == DISPLAY_DEVICE_MIRRORING_DRIVER) { return true; } // mirror screens, skip
+        else //check position
+        {
+            if (point_in_rect(::pos, iMonitor.rcMonitor)){
+                ::rWorkArea = iMonitor.rcWork;
+                return false; // stop iteration
+            }
+            return true;
+        };
+    }
     void show(HMENU menu) {
-        RECT rWorkArea;
-        POINT pos;
-        ::SystemParametersInfo(SPI_GETWORKAREA, 0, &rWorkArea, 0);
-        ::GetCursorPos(&pos);
+        ::GetCursorPos(&::pos);
+
+        EnumDisplayMonitors(NULL, NULL, &check_displays, NULL); // try to detect monitor with pointer
+        if ((::rWorkArea.left == ::rWorkArea.right) || (::rWorkArea.bottom == ::rWorkArea.top)){ // some problems when detecting current display, use primary display
+            ::SystemParametersInfo(SPI_GETWORKAREA, 0, &::rWorkArea, 0);
+        }
 
         LONG pos_x = pos.x, pos_y = pos.y;
         if (pos_x < rWorkArea.left)         pos_x = rWorkArea.left - 1;
