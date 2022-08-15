@@ -1,7 +1,0 @@
-﻿  stacky.cpp
-C:\Users\Egorov\Developer\cpp\stacky\src\stacky.cpp(111,9): warning C4996: 'vswprintf': function has been changed to conform with the ISO C standard, adding an extra character count parameter. To use the traditional Microsoft version, set _CRT_NON_CONFORMING_SWPRINTFS.
-C:\Users\Egorov\Developer\cpp\stacky\src\stacky.cpp(119,9): warning C4996: 'vswprintf': function has been changed to conform with the ISO C standard, adding an extra character count parameter. To use the traditional Microsoft version, set _CRT_NON_CONFORMING_SWPRINTFS.
-C:\Users\Egorov\Developer\cpp\stacky\src\stacky.cpp(179,67): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Users\Egorov\Developer\cpp\stacky\src\stacky.cpp(623,5): warning C4996: 'freopen': This function or variable may be unsafe. Consider using freopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Users\Egorov\Developer\cpp\stacky\src\stacky.cpp(624,5): warning C4996: 'freopen': This function or variable may be unsafe. Consider using freopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  stacky.vcxproj -> C:\Users\Egorov\Developer\cpp\stacky\vsproj\x64\Debug\stacky.exe
