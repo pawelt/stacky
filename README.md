@@ -1,4 +1,4 @@
-[Stacky](http://justafewlines.com/2013/04/stacky/) - Simple icon stacks solution for Windows
+[Stacky] Simple icon stacks solution for Windows
 ============================================================================================
 
 
