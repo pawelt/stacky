@@ -1,6 +1,16 @@
 [Stacky] Simple icon stacks solution for Windows
 ============================================================================================
 
+WARNING: This project is no longer maintained.
+----------------------------------------------
+
+As you can tell from the commit history, the project hasn't been updated for a long time. Since I no longer use Windows, 
+I don't really have an easy way to even compile it anymore.
+
+Thank you for your kind words in the open issues (I just closed them all, as I won't be able to address them).
+
+Please feel free to fork the project and improve it. Good luck! :)
+
 
 What is it
 ----------
@@ -35,7 +45,7 @@ How to use it
       
 4. Drag the stack shortcut to your taskbar.
 
-That's all. You can click the Stacky shrotcut on the taskbar to open the new stack.
+That's all. You can click the Stacky shortcut on the taskbar to open the new stack.
 
 
 Why is it useful
